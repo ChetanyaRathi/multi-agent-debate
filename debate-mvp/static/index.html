@@ -1,0 +1,1489 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Agentic Debate Hub</title>
+  
+  <!-- Google Fonts & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Marked.js for markdown rendering -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+  <style>
+    :root {
+      --bg-gradient: linear-gradient(135deg, #0a0f1d 0%, #0f172a 40%, #1e1b4b 100%);
+      --sidebar-bg: rgba(15, 23, 42, 0.7);
+      --chat-bg: rgba(30, 41, 59, 0.45);
+      --panel-border: rgba(255, 255, 255, 0.08);
+      --panel-border-hover: rgba(99, 102, 241, 0.25);
+      
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      
+      --accent-indigo: #6366f1;
+      --accent-purple: #a855f7;
+      --accent-gradient: linear-gradient(135deg, #6366f1, #a855f7);
+      --accent-glow: 0 0 20px rgba(99, 102, 241, 0.3);
+      
+      --user-bubble: rgba(99, 102, 241, 0.15);
+      --user-border: rgba(99, 102, 241, 0.25);
+      --agent-bubble: rgba(30, 41, 59, 0.7);
+      --agent-border: rgba(255, 255, 255, 0.08);
+      
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      
+      --transition-standard: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: var(--bg-gradient);
+      color: var(--text-primary);
+      height: 100vh;
+      display: flex;
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Container layout */
+    .app-container {
+      display: flex;
+      width: 100%;
+      height: 100%;
+      position: relative;
+    }
+
+    /* Sidebar Styles */
+    aside {
+      width: 320px;
+      background: var(--sidebar-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-right: 1px solid var(--panel-border);
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      z-index: 10;
+      transition: var(--transition-standard);
+    }
+
+    .sidebar-header {
+      padding: 24px;
+      border-bottom: 1px solid var(--panel-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand i {
+      font-size: 24px;
+      background: var(--accent-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 2px 8px rgba(99, 102, 241, 0.3));
+    }
+
+    .brand h1 {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+
+    .new-debate-btn {
+      margin: 16px 24px;
+      padding: 12px 16px;
+      background: var(--accent-gradient);
+      border: none;
+      border-radius: 12px;
+      color: white;
+      font-family: inherit;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+      transition: var(--transition-standard);
+    }
+
+    .new-debate-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
+    }
+
+    .new-debate-btn:active {
+      transform: translateY(0);
+    }
+
+    .history-section {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0 16px 24px 16px;
+    }
+
+    .history-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+      margin: 12px 8px 8px 8px;
+    }
+
+    .thread-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .thread-item {
+      padding: 12px 14px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--panel-border);
+      cursor: pointer;
+      transition: var(--transition-standard);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .thread-item:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: var(--panel-border-hover);
+      transform: translateX(4px);
+    }
+
+    .thread-item.active {
+      background: rgba(99, 102, 241, 0.1);
+      border-color: var(--accent-indigo);
+      box-shadow: inset 0 0 8px rgba(99, 102, 241, 0.1);
+    }
+
+    .thread-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+
+    .thread-item.active .thread-icon {
+      background: var(--accent-gradient);
+      color: white;
+    }
+
+    .thread-details {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .thread-text {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 2px;
+    }
+
+    .thread-time {
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+
+    /* Main Section */
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      background: var(--chat-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      position: relative;
+    }
+
+    /* Header Panel */
+    header {
+      height: 72px;
+      border-bottom: 1px solid var(--panel-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 32px;
+      background: rgba(15, 23, 42, 0.4);
+      z-index: 5;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .menu-toggle {
+      display: none;
+      font-size: 20px;
+      background: none;
+      border: none;
+      color: var(--text-primary);
+      cursor: pointer;
+    }
+
+    .active-thread-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary);
+      max-width: 400px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    /* Status Pills */
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--panel-border);
+      transition: var(--transition-standard);
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .status-dot.success { background-color: var(--success); box-shadow: 0 0 8px var(--success); }
+    .status-dot.warning { background-color: var(--warning); box-shadow: 0 0 8px var(--warning); }
+    .status-dot.danger { background-color: var(--danger); box-shadow: 0 0 8px var(--danger); }
+
+    /* Thread/Chat Messages */
+    .chat-scroller {
+      flex: 1;
+      overflow-y: auto;
+      padding: 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    /* Intro screen for blank states */
+    .empty-chat-state {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 40px;
+      color: var(--text-secondary);
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    .empty-icon {
+      font-size: 48px;
+      margin-bottom: 20px;
+      background: var(--accent-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: pulse-glow 3s infinite ease-in-out;
+    }
+
+    @keyframes pulse-glow {
+      0%, 100% { opacity: 0.7; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.05); filter: drop-shadow(0 0 15px rgba(99, 102, 241, 0.4)); }
+    }
+
+    .empty-chat-state h2 {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 12px;
+    }
+
+    .empty-chat-state p {
+      font-size: 14px;
+      line-height: 1.6;
+      margin-bottom: 24px;
+      color: var(--text-secondary);
+    }
+
+    .suggested-prompts {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+      width: 100%;
+    }
+
+    .prompt-chip {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--panel-border);
+      border-radius: 10px;
+      padding: 12px 16px;
+      font-size: 13px;
+      cursor: pointer;
+      text-align: left;
+      transition: var(--transition-standard);
+      color: var(--text-primary);
+    }
+
+    .prompt-chip:hover {
+      background: rgba(99, 102, 241, 0.1);
+      border-color: var(--panel-border-hover);
+      transform: translateY(-2px);
+    }
+
+    /* Message bubbles */
+    .msg-wrapper {
+      display: flex;
+      gap: 16px;
+      max-width: 80%;
+      animation: message-appear 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      transition: var(--transition-standard);
+    }
+
+    @keyframes message-appear {
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .msg-wrapper.user {
+      align-self: flex-end;
+      flex-direction: row-reverse;
+    }
+
+    .msg-wrapper.agent {
+      align-self: flex-start;
+    }
+
+    .avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 700;
+      flex-shrink: 0;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      border: 1px solid transparent;
+      background: rgba(30, 41, 59, 0.9);
+      transition: var(--transition-standard);
+    }
+
+    .msg-wrapper.user .avatar {
+      background: var(--accent-gradient);
+      color: white;
+    }
+
+    .msg-bubble {
+      border-radius: 16px;
+      padding: 16px 20px;
+      font-size: 15px;
+      line-height: 1.6;
+      position: relative;
+      flex: 1;
+    }
+
+    .msg-wrapper.user .msg-bubble {
+      background: var(--user-bubble);
+      border: 1px solid var(--user-border);
+      color: var(--text-primary);
+      border-top-right-radius: 4px;
+    }
+
+    .msg-wrapper.agent .msg-bubble {
+      background: var(--agent-bubble);
+      border: 1px solid var(--agent-border);
+      color: var(--text-primary);
+      border-top-left-radius: 4px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    /* Visual styles for Chair (Agent 21) */
+    .msg-wrapper.chair {
+      align-self: flex-start;
+    }
+    
+    .msg-wrapper.chair .avatar {
+      background: linear-gradient(135deg, #fbbf24, #f59e0b);
+      border: 1.5px solid #d97706;
+      color: #78350f;
+      box-shadow: 0 0 16px rgba(245, 158, 11, 0.4);
+    }
+    
+    .msg-wrapper.chair .msg-bubble {
+      background: rgba(251, 191, 36, 0.06);
+      border: 1.5px solid rgba(245, 158, 11, 0.35);
+      box-shadow: 0 4px 25px rgba(245, 158, 11, 0.08);
+    }
+
+    /* Visual styles for gender profiles */
+    .msg-wrapper.she .avatar {
+      border: 1.5px solid rgba(236, 72, 153, 0.45);
+      color: #ec4899;
+      box-shadow: 0 0 12px rgba(236, 72, 153, 0.2);
+    }
+    .msg-wrapper.she .msg-bubble {
+      background: rgba(236, 72, 153, 0.04);
+      border: 1px solid rgba(236, 72, 153, 0.2);
+    }
+    
+    .msg-wrapper.he .avatar {
+      border: 1.5px solid rgba(6, 182, 212, 0.45);
+      color: #06b6d4;
+      box-shadow: 0 0 12px rgba(6, 182, 212, 0.2);
+    }
+    .msg-wrapper.he .msg-bubble {
+      background: rgba(6, 182, 212, 0.04);
+      border: 1px solid rgba(6, 182, 212, 0.2);
+    }
+
+    .msg-sender {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+      display: block;
+    }
+
+    .msg-wrapper.user .msg-sender {
+      color: #818cf8;
+      text-align: right;
+    }
+
+    /* Consensus Cards Visuals */
+    .banner {
+      background: rgba(99, 102, 241, 0.08);
+      border: 1px dashed rgba(99, 102, 241, 0.3);
+      color: #818cf8;
+      border-radius: 12px;
+      padding: 12px 20px;
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      text-align: center;
+      margin: 16px 0;
+      animation: message-appear 0.4s ease-in-out;
+    }
+
+    .proposal {
+      background: rgba(168, 85, 247, 0.08);
+      border: 1px solid rgba(168, 85, 247, 0.3);
+      border-radius: 16px;
+      padding: 20px;
+      margin: 20px 0;
+      box-shadow: 0 4px 20px rgba(168, 85, 247, 0.08);
+      animation: message-appear 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    
+    .proposal .name {
+      font-size: 11px;
+      font-weight: 800;
+      color: #c084fc;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .proposal .name::before {
+      content: '\f0f6';
+      font-family: 'Font Awesome 6 Free';
+      font-weight: 900;
+    }
+    
+    .proposal .body {
+      font-size: 15px;
+      line-height: 1.6;
+      color: var(--text-primary);
+    }
+
+    .final {
+      border-radius: 16px;
+      padding: 24px;
+      margin: 24px 0;
+      animation: message-appear 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    
+    .final.consensus-reached {
+      background: rgba(16, 185, 129, 0.1);
+      border: 1.5px solid rgba(16, 185, 129, 0.35);
+      box-shadow: 0 6px 25px rgba(16, 185, 129, 0.12);
+    }
+    
+    .final.no-consensus {
+      background: rgba(245, 158, 11, 0.1);
+      border: 1.5px solid rgba(245, 158, 11, 0.35);
+      box-shadow: 0 6px 25px rgba(245, 158, 11, 0.12);
+    }
+    
+    .final .name {
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .final.consensus-reached .name {
+      color: #34d399;
+    }
+    
+    .final.consensus-reached .name::before {
+      content: '\f058';
+      font-family: 'Font Awesome 6 Free';
+      font-weight: 900;
+    }
+    
+    .final.no-consensus .name {
+      color: #fbbf24;
+    }
+    
+    .final.no-consensus .name::before {
+      content: '\f071';
+      font-family: 'Font Awesome 6 Free';
+      font-weight: 900;
+    }
+    
+    .final .body {
+      font-size: 16px;
+      line-height: 1.6;
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+
+    .final .winner {
+      font-size: 14px;
+      margin-bottom: 8px;
+      color: #38bdf8;
+      font-weight: 600;
+    }
+
+    .final .banned {
+      font-size: 14px;
+      margin-bottom: 8px;
+      color: #f87171;
+      font-weight: 600;
+    }
+
+    .result {
+      background: rgba(245, 158, 11, 0.08);
+      border: 1.5px solid rgba(245, 158, 11, 0.35);
+      border-radius: 16px;
+      padding: 24px;
+      margin: 24px 0;
+      box-shadow: 0 6px 25px rgba(245, 158, 11, 0.1);
+      animation: message-appear 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    
+    .result .name {
+      font-size: 12px;
+      font-weight: 800;
+      color: #fbbf24;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .result .name::before {
+      content: '\f0eb';
+      font-family: 'Font Awesome 6 Free';
+      font-weight: 900;
+    }
+    
+    .result .body {
+      font-size: 16px;
+      line-height: 1.6;
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+
+    /* Markdown styling inside bubbles */
+    .msg-body p {
+      margin-bottom: 12px;
+    }
+
+    .msg-body p:last-child {
+      margin-bottom: 0;
+    }
+
+    .msg-body code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13.5px;
+      background: rgba(0, 0, 0, 0.3);
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: #f472b6;
+    }
+
+    .msg-body pre {
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid var(--panel-border);
+      border-radius: 8px;
+      padding: 14px;
+      overflow-x: auto;
+      margin: 12px 0;
+    }
+
+    .msg-body pre code {
+      background: none;
+      padding: 0;
+      color: #e2e8f0;
+      font-size: 13px;
+    }
+
+    .msg-body ul, .msg-body ol {
+      margin: 8px 0 8px 20px;
+    }
+
+    .msg-body li {
+      margin-bottom: 4px;
+    }
+
+    .msg-body strong {
+      color: #818cf8;
+    }
+
+    /* Typing Animation */
+    .typing-indicator {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 0;
+    }
+
+    .typing-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--text-secondary);
+      border-radius: 50%;
+      opacity: 0.4;
+      animation: bounce 1.4s infinite ease-in-out both;
+    }
+
+    .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+    .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+
+    @keyframes bounce {
+      0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+      40% { transform: scale(1.1); opacity: 1; }
+    }
+
+    /* Input panel */
+    .input-panel {
+      padding: 24px 32px 32px 32px;
+      background: linear-gradient(to top, rgba(10, 15, 29, 0.8), rgba(10, 15, 29, 0));
+      z-index: 5;
+    }
+
+    .input-container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: rgba(15, 23, 42, 0.7);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--panel-border);
+      border-radius: 16px;
+      padding: 8px 12px 8px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      transition: var(--transition-standard);
+    }
+
+    .input-container:focus-within {
+      border-color: var(--accent-indigo);
+      box-shadow: var(--accent-glow), 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    .input-container textarea {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: 15px;
+      resize: none;
+      height: 24px;
+      max-height: 120px;
+      line-height: 1.6;
+      padding: 8px 0;
+    }
+
+    .input-container textarea::placeholder {
+      color: var(--text-muted);
+    }
+
+    .send-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      background: var(--accent-gradient);
+      border: none;
+      color: white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      transition: var(--transition-standard);
+      flex-shrink: 0;
+      box-shadow: 0 4px 10px rgba(99, 102, 241, 0.25);
+    }
+
+    .send-btn:hover:not(:disabled) {
+      transform: scale(1.05);
+      box-shadow: 0 6px 15px rgba(99, 102, 241, 0.4);
+    }
+
+    .send-btn:disabled {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-muted);
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .input-tip {
+      text-align: center;
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 10px;
+      letter-spacing: 0.2px;
+    }
+
+    /* Scrollbar formatting */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    /* Responsive */
+    @media (max-width: 868px) {
+      aside {
+        position: absolute;
+        left: -320px;
+        top: 0;
+        bottom: 0;
+      }
+
+      aside.open {
+        left: 0;
+        box-shadow: 10px 0 30px rgba(0, 0, 0, 0.5);
+      }
+
+      .menu-toggle {
+        display: block;
+      }
+      
+      header {
+        padding: 0 16px;
+      }
+      
+      .chat-scroller {
+        padding: 20px;
+      }
+      
+      .msg-wrapper {
+        max-width: 95%;
+      }
+    }
+
+    /* Overlay for sidebar drawer */
+    .sidebar-overlay {
+      display: none;
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(4px);
+      z-index: 8;
+    }
+
+    .sidebar-overlay.open {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Sidebar History -->
+    <aside id="sidebar">
+      <div class="sidebar-header">
+        <div class="brand">
+          <i class="fa-solid fa-scale-balanced"></i>
+          <h1>Debate Hub</h1>
+        </div>
+        <button class="menu-toggle" id="closeSidebar"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      
+      <button class="new-debate-btn" id="newDebateBtn">
+        <i class="fa-solid fa-plus"></i> New Debate
+      </button>
+
+      <div class="history-section">
+        <div class="history-title">Previous Debates</div>
+        <ul class="thread-list" id="threadList">
+          <!-- Populated dynamically -->
+        </ul>
+      </div>
+    </aside>
+
+    <!-- Main Workspace -->
+    <main>
+      <!-- Top header bar -->
+      <header>
+        <div class="header-left">
+          <button class="menu-toggle" id="openSidebar"><i class="fa-solid fa-bars"></i></button>
+          <div class="active-thread-title" id="activeThreadTitle">Start a new debate...</div>
+        </div>
+        
+        <div class="header-right">
+          <!-- WebSocket Status -->
+          <div class="status-pill" id="wsStatus">
+            <span class="status-dot danger" id="wsStatusDot"></span>
+            <span id="wsStatusText">Disconnected</span>
+          </div>
+
+          <!-- Ollama Server Status -->
+          <div class="status-pill" id="ollamaStatus">
+            <span class="status-dot danger" id="ollamaStatusDot"></span>
+            <span id="ollamaStatusText">Ollama offline</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- Chat Scroller -->
+      <div class="chat-scroller" id="chatScroller">
+        <!-- Welcoming Empty State -->
+        <div class="empty-chat-state" id="emptyState">
+          <div class="empty-icon">
+            <i class="fa-solid fa-gavel"></i>
+          </div>
+          <h2>Confront the Panel</h2>
+          <p>
+            Start a structured debate judged by Agent 21 (The Chair). Propose a controversial thesis, watch agents challenge each other, respond to direct rebuttals, and vote on a final consensus.
+          </p>
+          <div class="suggested-prompts">
+            <button class="prompt-chip" onclick="usePrompt('Should Artificial Intelligence be granted legal personhood status?')">
+              Should Artificial Intelligence be granted legal personhood status?
+            </button>
+            <button class="prompt-chip" onclick="usePrompt('Is remote work truly better than standard office settings?')">
+              Is remote work truly better than standard office settings?
+            </button>
+            <button class="prompt-chip" onclick="usePrompt('Will space tourism be beneficial for humanity long-term?')">
+              Will space tourism be beneficial for humanity long-term?
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Input Footer -->
+      <div class="input-panel">
+        <div class="input-container">
+          <textarea id="q" placeholder="Propose a thesis or ask a question..." autocomplete="off" rows="1"></textarea>
+          <button class="send-btn" id="send" disabled>
+            <i class="fa-solid fa-paper-plane"></i>
+          </button>
+        </div>
+        <div class="input-tip">Press Enter to send, Shift+Enter for newline</div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // Marked configuration for custom rendering
+    marked.setOptions({
+      gfm: true,
+      breaks: true
+    });
+
+    let ws = null;
+    let postId = null;
+    let bubbles = {}; // maps agent name -> bubble body element for the active batch
+    let threadListCache = [];
+    
+    // Female participant name list for gender styling highlights
+    const WOMEN = new Set(["Maya","Aisha","Lena","Priya","Grace","Nadia","Sofia","Elena","Kira","Mei"]);
+
+    // DOM Elements
+    const threadList = document.getElementById("threadList");
+    const q = document.getElementById("q");
+    const sendBtn = document.getElementById("send");
+    const chatScroller = document.getElementById("chatScroller");
+    const emptyState = document.getElementById("emptyState");
+    const activeThreadTitle = document.getElementById("activeThreadTitle");
+    const newDebateBtn = document.getElementById("newDebateBtn");
+    
+    // Status Elements
+    const wsStatusDot = document.getElementById("wsStatusDot");
+    const wsStatusText = document.getElementById("wsStatusText");
+    const ollamaStatusDot = document.getElementById("ollamaStatusDot");
+    const ollamaStatusText = document.getElementById("ollamaStatusText");
+
+    // Sidebar Mobile Controls
+    const sidebar = document.getElementById("sidebar");
+    const openSidebar = document.getElementById("openSidebar");
+    const closeSidebar = document.getElementById("closeSidebar");
+    const sidebarOverlay = document.getElementById("sidebarOverlay");
+
+    // Auto-resize textarea
+    q.addEventListener("input", function() {
+      this.style.height = "auto";
+      this.style.height = (this.scrollHeight - 16) + "px";
+    });
+
+    // Sidebar Drawer Toggles
+    function toggleSidebar(open) {
+      if (open) {
+        sidebar.classList.add("open");
+        sidebarOverlay.classList.add("open");
+      } else {
+        sidebar.classList.remove("open");
+        sidebarOverlay.classList.remove("open");
+      }
+    }
+    openSidebar.addEventListener("click", () => toggleSidebar(true));
+    closeSidebar.addEventListener("click", () => toggleSidebar(false));
+    sidebarOverlay.addEventListener("click", () => toggleSidebar(false));
+
+    // Fallback name hashing color (if needed, but she/he will override it visually)
+    function getAgentColor(name) {
+      if (name === "User" || name === "You") return "#6366f1";
+      if (name === "Agent 21") return "#fbbf24";
+      const colors = [
+        '#6366f1', '#a855f7', '#ec4899', '#f43f5e', 
+        '#eab308', '#22c55e', '#06b6d4', '#3b82f6',
+        '#10b981', '#f97316', '#ef4444', '#84cc16'
+      ];
+      let hash = 0;
+      for (let i = 0; i < name.length; i++) {
+        hash = name.charCodeAt(i) + ((hash << 5) - hash);
+      }
+      return colors[Math.abs(hash) % colors.length];
+    }
+
+    // Format ISO Dates
+    function formatTime(isoStr) {
+      try {
+        const date = new Date(isoStr);
+        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ' ' + date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+      } catch (e) {
+        return "";
+      }
+    }
+
+    // Initialize Web Socket
+    function initWebSocket() {
+      const wsProto = location.protocol === "https:" ? "wss:" : "ws:";
+      const wsUrl = `${wsProto}//${location.host}/ws`;
+      
+      ws = new WebSocket(wsUrl);
+
+      ws.onopen = () => {
+        wsStatusDot.className = "status-dot success";
+        wsStatusText.textContent = "Live Stream Connected";
+        sendBtn.disabled = !q.value.trim();
+      };
+
+      ws.onclose = () => {
+        wsStatusDot.className = "status-dot danger";
+        wsStatusText.textContent = "Reconnecting...";
+        sendBtn.disabled = true;
+        
+        // Auto-reconnect loop
+        setTimeout(initWebSocket, 3000);
+      };
+
+      ws.onmessage = (ev) => {
+        const m = JSON.parse(ev.data);
+        
+        switch (m.type) {
+          case "post":
+            postId = m.post_id;
+            activeThreadTitle.textContent = q.placeholder;
+            loadPosts(postId);
+            break;
+          case "phase":
+            addBanner(m.label);
+            break;
+          case "speakers":
+            bubbles = {};
+            m.agents.forEach(a => {
+              bubbles[a] = addMsg("agent", a, true); // create bubble with typing indicator
+            });
+            scrollToBottom();
+            break;
+          case "token":
+            const bodyEl = bubbles[m.agent];
+            if (bodyEl) {
+              if (bodyEl.dataset.isTyping === "true") {
+                bodyEl.innerHTML = "";
+                bodyEl.dataset.isTyping = "false";
+              }
+              bodyEl.dataset.rawText = (bodyEl.dataset.rawText || "") + m.text;
+              bodyEl.innerHTML = marked.parse(bodyEl.dataset.rawText);
+            }
+            scrollToBottom();
+            break;
+          case "turn_done":
+            const doneBody = bubbles[m.agent];
+            if (doneBody) {
+              if (doneBody.dataset.isTyping === "true") {
+                doneBody.innerHTML = "";
+                doneBody.dataset.isTyping = "false";
+              }
+              const wrapper = doneBody.closest('.msg-wrapper');
+              if (wrapper) {
+                wrapper.style.opacity = "0.85";
+                const avatar = wrapper.querySelector('.avatar');
+                if (avatar) {
+                  avatar.style.boxShadow = "none";
+                }
+              }
+            }
+            break;
+          case "challenge":
+            addBanner(`${m.from} challenges ${m.to}`);
+            break;
+          case "ban":
+            addBanner(`${m.agent} was BANNED by Agent 21`);
+            break;
+          case "proposal":
+            addProposal(m.text);
+            break;
+          case "tally":
+            addBanner(`${m.agree}/${m.total} agents satisfied`);
+            break;
+          case "final":
+            addFinal(m.text, m.consensus, m.winner, m.banned);
+            sendBtn.disabled = false;
+            q.disabled = false;
+            bubbles = {};
+            q.focus();
+            break;
+          case "result":
+            addResult(m.text);
+            break;
+          case "error":
+            const errDiv = addMsg("agent", "System Error");
+            errDiv.innerHTML = marked.parse(`**WebSocket Error:** ${m.message}`);
+            sendBtn.disabled = false;
+            q.disabled = false;
+            bubbles = {};
+            scrollToBottom();
+            break;
+        }
+      };
+    }
+
+    // Custom consensus visual builders
+    function addBanner(text) {
+      emptyState.style.display = "none";
+      const d = document.createElement("div");
+      d.className = "banner";
+      d.textContent = text;
+      chatScroller.appendChild(d);
+      scrollToBottom();
+    }
+
+    // Agent 21 proposals
+    function addProposal(text) {
+      emptyState.style.display = "none";
+      const d = document.createElement("div");
+      d.className = "proposal";
+      d.innerHTML = `<div class="name">CURRENT PROPOSAL</div><div class="body">${marked.parse(text)}</div>`;
+      chatScroller.appendChild(d);
+      scrollToBottom();
+    }
+
+    // Decisive verdicts
+    function addFinal(text, consensus, winner, banned) {
+      emptyState.style.display = "none";
+      const d = document.createElement("div");
+      d.className = `final ${consensus ? "consensus-reached" : "no-consensus"}`;
+      
+      let head = consensus ? "DECISIVE VERDICT: CONSENSUS" : "DECISIVE VERDICT: NO CONSENSUS";
+      let extra = "";
+      if (winner) extra += `<div class="winner">🏆 Winner: <strong>${winner}</strong></div>`;
+      if (banned && banned.length) extra += `<div class="banned">🚫 Banned: <strong>${banned.join(", ")}</strong></div>`;
+      
+      d.innerHTML = `
+        <div class="name">${head}</div>
+        ${extra}
+        <div class="body">${marked.parse(text)}</div>
+      `;
+      chatScroller.appendChild(d);
+      scrollToBottom();
+    }
+
+    // Final Answer Result
+    function addResult(text) {
+      emptyState.style.display = "none";
+      const d = document.createElement("div");
+      d.className = "result";
+      d.innerHTML = `
+        <div class="name">THE ANSWER</div>
+        <div class="body">${marked.parse(text)}</div>
+      `;
+      chatScroller.appendChild(d);
+      scrollToBottom();
+    }
+
+    // Check Ollama Status API
+    async function checkOllamaStatus() {
+      try {
+        const res = await fetch("/api/status");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.backend === "gemini") {
+            if (data.connected) {
+              ollamaStatusDot.className = "status-dot success";
+              ollamaStatusText.textContent = `Gemini: ${data.model_configured}`;
+            } else {
+              ollamaStatusDot.className = "status-dot danger";
+              ollamaStatusText.textContent = "Gemini Key Missing";
+            }
+          } else {
+            const isConnected = data.connected || data.ollama_connected;
+            if (isConnected) {
+              if (data.model_available) {
+                ollamaStatusDot.className = "status-dot success";
+                ollamaStatusText.textContent = `Ollama: ${data.model_configured}`;
+              } else {
+                ollamaStatusDot.className = "status-dot warning";
+                ollamaStatusText.textContent = `${data.model_configured} missing`;
+              }
+            } else {
+              ollamaStatusDot.className = "status-dot danger";
+              ollamaStatusText.textContent = "Ollama offline";
+            }
+          }
+        }
+      } catch (err) {
+        ollamaStatusDot.className = "status-dot danger";
+        ollamaStatusText.textContent = "API error";
+      }
+    }
+
+    // Fetch and Load Debate Thread List
+    async function loadPosts(activeId = null) {
+      try {
+        const res = await fetch("/api/posts");
+        if (res.ok) {
+          const posts = await res.json();
+          threadListCache = posts;
+          
+          threadList.innerHTML = "";
+          if (posts.length === 0) {
+            threadList.innerHTML = `<div style="padding: 12px; font-size: 12px; color: var(--text-muted); text-align: center;">No debates yet</div>`;
+            return;
+          }
+
+          posts.forEach(post => {
+            const li = document.createElement("li");
+            li.className = `thread-item ${activeId === post.id ? 'active' : ''}`;
+            li.onclick = () => selectPost(post.id);
+            li.innerHTML = `
+              <div class="thread-icon">
+                <i class="fa-solid fa-comments"></i>
+              </div>
+              <div class="thread-details">
+                <div class="thread-text">${escapeHtml(post.question)}</div>
+                <div class="thread-time">${formatTime(post.created_at)}</div>
+              </div>
+            `;
+            threadList.appendChild(li);
+          });
+        }
+      } catch (err) {
+        console.error("Error loading debates:", err);
+      }
+    }
+
+    // Escape HTML helper
+    function escapeHtml(unsafe) {
+      return unsafe
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    // Load Specific Thread Detail
+    async function selectPost(id) {
+      toggleSidebar(false); // Close on mobile drawers
+      postId = id;
+      
+      const items = threadList.querySelectorAll(".thread-item");
+      items.forEach(el => el.classList.remove("active"));
+      
+      const cachedPost = threadListCache.find(p => p.id === id);
+      if (cachedPost) {
+        activeThreadTitle.textContent = cachedPost.question;
+      }
+      
+      loadPosts(id);
+
+      emptyState.style.display = "none";
+      const messages = chatScroller.querySelectorAll(".msg-wrapper, .banner, .proposal, .final, .result");
+      messages.forEach(m => m.remove());
+
+      try {
+        const res = await fetch(`/api/posts/${id}`);
+        if (res.ok) {
+          const data = await res.json();
+          activeThreadTitle.textContent = data.post.question;
+          
+          const comments = data.comments || [];
+          comments.forEach((comment, idx) => {
+            const isLast = idx === comments.length - 1;
+            
+            if (comment.agent_name === "User") {
+              const contentDiv = addMsg("user", "You");
+              contentDiv.dataset.rawText = comment.body;
+              contentDiv.innerHTML = marked.parse(comment.body);
+            } else if (comment.agent_name === "Agent 21") {
+              const status = data.post.status;
+              const isFinished = status === "consensus" || status === "best_effort";
+              
+              if (isFinished && idx === comments.length - 1) {
+                addResult(comment.body);
+              } else if (isFinished && idx === comments.length - 2) {
+                addFinal(comment.body, status === "consensus");
+              } else {
+                const contentDiv = addMsg("chair", "Agent 21");
+                contentDiv.dataset.rawText = comment.body;
+                contentDiv.innerHTML = marked.parse(comment.body);
+              }
+            } else {
+              const contentDiv = addMsg("agent", comment.agent_name);
+              contentDiv.dataset.rawText = comment.body;
+              contentDiv.innerHTML = marked.parse(comment.body);
+              
+              // Dim the finished agent card
+              const wrapper = contentDiv.closest('.msg-wrapper');
+              if (wrapper) {
+                wrapper.style.opacity = "0.85";
+                const avatar = wrapper.querySelector('.avatar');
+                if (avatar) avatar.style.boxShadow = "none";
+              }
+            }
+          });
+          scrollToBottom();
+        }
+      } catch (err) {
+        console.error("Error fetching post details:", err);
+      }
+    }
+
+    // Reset view for a new debate
+    function startNewDebate() {
+      postId = null;
+      activeThreadTitle.textContent = "Start a new debate...";
+      emptyState.style.display = "flex";
+      
+      const items = threadList.querySelectorAll(".thread-item");
+      items.forEach(el => el.classList.remove("active"));
+
+      const messages = chatScroller.querySelectorAll(".msg-wrapper, .banner, .proposal, .final, .result");
+      messages.forEach(m => m.remove());
+      
+      q.value = "";
+      q.style.height = "auto";
+      q.focus();
+      toggleSidebar(false);
+    }
+
+    newDebateBtn.onclick = startNewDebate;
+
+    // Add Message Bubble to the chat
+    function addMsg(cls, name, showTyping = false) {
+      emptyState.style.display = "none";
+      
+      const wrapper = document.createElement("div");
+      wrapper.className = `msg-wrapper ${cls}`;
+      
+      const avatarEl = document.createElement("div");
+      avatarEl.className = "avatar";
+      
+      if (cls === "user") {
+        avatarEl.innerHTML = '<i class="fa-solid fa-user"></i>';
+      } else if (cls === "chair" || name === "Agent 21") {
+        wrapper.className = `msg-wrapper agent chair`;
+        avatarEl.innerHTML = '<i class="fa-solid fa-gavel"></i>';
+      } else {
+        avatarEl.textContent = name.charAt(0);
+        const genderClass = WOMEN.has(name) ? "she" : "he";
+        wrapper.className = `msg-wrapper agent ${genderClass}`;
+      }
+      
+      const bubble = document.createElement("div");
+      bubble.className = "msg-bubble";
+      
+      const senderSpan = document.createElement("span");
+      senderSpan.className = "msg-sender";
+      senderSpan.textContent = name;
+      if (cls === "chair" || name === "Agent 21") {
+        senderSpan.style.color = "#fbbf24";
+      } else if (cls !== "user") {
+        senderSpan.style.color = WOMEN.has(name) ? "#f472b6" : "#22d3ee";
+      }
+      
+      const bodySpan = document.createElement("span");
+      bodySpan.className = "msg-body";
+      
+      if (showTyping) {
+        bodySpan.innerHTML = `
+          <div class="typing-indicator">
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+          </div>
+        `;
+        bodySpan.dataset.isTyping = "true";
+      }
+      
+      bubble.appendChild(senderSpan);
+      bubble.appendChild(bodySpan);
+      
+      wrapper.appendChild(avatarEl);
+      wrapper.appendChild(bubble);
+      
+      chatScroller.appendChild(wrapper);
+      return bodySpan;
+    }
+
+    // Scroll chat window to bottom
+    function scrollToBottom() {
+      chatScroller.scrollTo({
+        top: chatScroller.scrollHeight,
+        behavior: 'smooth'
+      });
+    }
+
+    // Send Message Trigger
+    function send() {
+      const text = q.value.trim();
+      if (!text || sendBtn.disabled) return;
+      
+      if (postId === null) {
+        q.placeholder = text;
+      }
+      
+      addMsg("user", "You").innerHTML = marked.parse(text);
+      scrollToBottom();
+      
+      ws.send(JSON.stringify({ question: text, post_id: postId }));
+      
+      q.value = "";
+      q.style.height = "auto";
+      sendBtn.disabled = true;
+      q.disabled = true;
+      bubbles = {};
+    }
+
+    sendBtn.onclick = send;
+
+    q.addEventListener("keydown", e => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        send();
+      }
+    });
+
+    q.addEventListener("input", () => {
+      sendBtn.disabled = !q.value.trim() || ws.readyState !== WebSocket.OPEN;
+    });
+
+    function usePrompt(text) {
+      q.value = text;
+      q.style.height = "auto";
+      q.style.height = (q.scrollHeight - 16) + "px";
+      q.focus();
+      sendBtn.disabled = false;
+    }
+
+    // Initialization
+    initWebSocket();
+    checkOllamaStatus();
+    loadPosts();
+    
+    // Poll Ollama status periodically
+    setInterval(checkOllamaStatus, 10000);
+  </script>
+</body>
+</html>
